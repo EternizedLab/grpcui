@@ -1,8 +1,8 @@
 package assets_test
 
 import (
-	"github.com/fullstorydev/grpcui/internal/resources/standalone"
-	"github.com/fullstorydev/grpcui/internal/resources/webform"
+	"github.com/hoveychen/grpcui/internal/resources/standalone"
+	"github.com/hoveychen/grpcui/internal/resources/webform"
 	"testing"
 )
 

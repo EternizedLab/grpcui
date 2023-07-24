@@ -23,9 +23,21 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/fullstorydev/grpcui/internal"
 	"github.com/fullstorydev/grpcurl"
+	"github.com/hoveychen/grpcui/internal"
 )
+
+type CommentStore interface {
+	GetCommentByFullyQualifiedName(name string) string
+}
+
+var (
+	commentStore CommentStore
+)
+
+func SetCommentStore(store CommentStore) {
+	commentStore = store
+}
 
 // RPCInvokeHandler returns an HTTP handler that can be used to invoke RPCs. The
 // request includes request data, header metadata, and an optional timeout.
@@ -174,10 +186,12 @@ func RPCMetadataHandler(methods []*desc.MethodDescriptor, files []*desc.FileDesc
 // What if we wanted to load metadata for all methods? We should consider splitting this
 // into 2 separate types for metadata to respond with accordingly.
 type schema struct {
-	RequestType   string                  `json:"requestType"`
-	RequestStream bool                    `json:"requestStream"`
-	MessageTypes  map[string][]fieldDef   `json:"messageTypes"`
-	EnumTypes     map[string][]enumValDef `json:"enumTypes"`
+	RequestType          string                  `json:"requestType"`
+	RequestStream        bool                    `json:"requestStream"`
+	RequestMethodComment string                  `json:"requestMethodComment"`
+	MessageTypes         map[string][]fieldDef   `json:"messageTypes"`
+	EnumTypes            map[string][]enumValDef `json:"enumTypes"`
+	MessageComments      map[string]string       `json:"messageComments"`
 }
 
 type fieldDef struct {
@@ -192,11 +206,13 @@ type fieldDef struct {
 	IsRequired  bool        `json:"isRequired"`
 	DefaultVal  interface{} `json:"defaultVal"`
 	Description string      `json:"description"`
+	Comment     string      `json:"comment"`
 }
 
 type enumValDef struct {
-	Num  int32  `json:"num"`
-	Name string `json:"name"`
+	Num     int32  `json:"num"`
+	Name    string `json:"name"`
+	Comment string `json:"comment"`
 }
 
 type fieldType string
@@ -240,8 +256,9 @@ var typeMap = map[descriptor.FieldDescriptorProto_Type]fieldType{
 
 func gatherAllMessageMetadata(files []*desc.FileDescriptor) *schema {
 	result := &schema{
-		MessageTypes: map[string][]fieldDef{},
-		EnumTypes:    map[string][]enumValDef{},
+		MessageTypes:    map[string][]fieldDef{},
+		EnumTypes:       map[string][]enumValDef{},
+		MessageComments: map[string]string{},
 	}
 	for _, fd := range files {
 		gatherAllMessages(fd.GetMessageTypes(), result)
@@ -259,10 +276,12 @@ func gatherAllMessages(msgs []*desc.MessageDescriptor, result *schema) {
 func gatherMetadataForMethod(md *desc.MethodDescriptor) (*schema, error) {
 	msg := md.GetInputType()
 	result := &schema{
-		RequestType:   msg.GetFullyQualifiedName(),
-		RequestStream: md.IsClientStreaming(),
-		MessageTypes:  map[string][]fieldDef{},
-		EnumTypes:     map[string][]enumValDef{},
+		RequestType:          msg.GetFullyQualifiedName(),
+		RequestStream:        md.IsClientStreaming(),
+		MessageTypes:         map[string][]fieldDef{},
+		EnumTypes:            map[string][]enumValDef{},
+		MessageComments:      map[string]string{},
+		RequestMethodComment: commentStore.GetCommentByFullyQualifiedName(md.GetFullyQualifiedName()),
 	}
 
 	result.visitMessage(msg)
@@ -274,6 +293,9 @@ func (s *schema) visitMessage(md *desc.MessageDescriptor) {
 	if _, ok := s.MessageTypes[md.GetFullyQualifiedName()]; ok {
 		// already visited
 		return
+	}
+	if commentStore != nil {
+		s.MessageComments[md.GetFullyQualifiedName()] = commentStore.GetCommentByFullyQualifiedName(md.GetFullyQualifiedName())
 	}
 
 	fields := make([]fieldDef, 0, len(md.GetFields()))
@@ -307,6 +329,9 @@ func (s *schema) processField(fd *desc.FieldDescriptor) fieldDef {
 		IsMap:      fd.IsMap(),
 		IsRequired: fd.IsRequired(),
 		DefaultVal: fd.GetDefaultValue(),
+	}
+	if commentStore != nil {
+		def.Comment = commentStore.GetCommentByFullyQualifiedName(fd.GetFullyQualifiedName())
 	}
 
 	if def.IsMap {
@@ -390,6 +415,9 @@ func (s *schema) visitEnum(ed *desc.EnumDescriptor) {
 		enumVals[i] = enumValDef{
 			Num:  evd.GetNumber(),
 			Name: evd.GetName(),
+		}
+		if commentStore != nil {
+			enumVals[i].Comment = commentStore.GetCommentByFullyQualifiedName(evd.GetFullyQualifiedName())
 		}
 	}
 
