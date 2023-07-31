@@ -23,8 +23,8 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
+	"github.com/EternizedLab/grpcui/internal"
 	"github.com/fullstorydev/grpcurl"
-	"github.com/hoveychen/grpcui/internal"
 )
 
 type CommentStore interface {

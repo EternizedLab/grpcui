@@ -42,8 +42,8 @@ import (
 	// Register xds so xds and xds-experimental resolver schemes work
 	_ "google.golang.org/grpc/xds"
 
-	"github.com/hoveychen/grpcui/internal"
-	"github.com/hoveychen/grpcui/standalone"
+	"github.com/EternizedLab/grpcui/internal"
+	"github.com/EternizedLab/grpcui/standalone"
 )
 
 var version = "dev build <no version set>"

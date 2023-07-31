@@ -14,7 +14,7 @@ import (
 
 	"github.com/jhump/protoreflect/desc"
 
-	"github.com/hoveychen/grpcui/internal/resources/webform"
+	"github.com/EternizedLab/grpcui/internal/resources/webform"
 )
 
 var (

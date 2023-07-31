@@ -12,7 +12,7 @@ These changes impact usage of both the command-line tool and the Go packages.
 * _In this list, describe the changes to the command-line tool._
 * _Use one bullet per change. Include both bug-fixes and improvements. Omit this section if there are no changes that impact the command-line tool._
 
-### Go package "github.com/hoveychen/grpcui"
+### Go package "github.com/EternizedLab/grpcui"
 
-* _In this list, describe the changes to exported API in the main package in this repo: "github.com/hoveychen/grpcui". These will often be closely related to changes to the command-line tool, though not always: changes that only impact the cmd/grpcui directory of this repo do not impact exported API._
+* _In this list, describe the changes to exported API in the main package in this repo: "github.com/EternizedLab/grpcui". These will often be closely related to changes to the command-line tool, though not always: changes that only impact the cmd/grpcui directory of this repo do not impact exported API._
 * _Use one bullet per change. Include both bug-fixes and improvements. Omit this section if there are no changes that impact the exported API._

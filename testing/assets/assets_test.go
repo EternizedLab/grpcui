@@ -1,8 +1,8 @@
 package assets_test
 
 import (
-	"github.com/hoveychen/grpcui/internal/resources/standalone"
-	"github.com/hoveychen/grpcui/internal/resources/webform"
+	"github.com/EternizedLab/grpcui/internal/resources/standalone"
+	"github.com/EternizedLab/grpcui/internal/resources/webform"
 	"testing"
 )
 
